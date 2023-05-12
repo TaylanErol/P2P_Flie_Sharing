@@ -209,3 +209,5 @@ if __name__ == '__main__':
     # Wait for all threads to complete
     chunk_announcer_thread.join()
     content_discovery_thread.join()
+    chunk_uploader_thread.join()
+    console_sniffer_thread.join()
