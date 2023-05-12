@@ -173,7 +173,7 @@ def chunk_uploader():
 
 
 def console_sniffer():
-    print("Commands to use: \n d=<requested_file_name> downloads requested file.")
+    print("Usable commands: \n d=<requested_file_name> / downloads requested file.")
     while True:
         command = input()
 
@@ -197,11 +197,11 @@ if __name__ == '__main__':
     content_discovery_thread.start()
 
     # Running Chunk Uploader
-    chunk_uploader_thread = threading.Thread(target=chunk_uploader())
+    chunk_uploader_thread = threading.Thread(target=chunk_uploader)
     chunk_uploader_thread.start()
 
     console_sniffer_thread = threading.Thread(target=console_sniffer)
-    time.sleep(10)
+    time.sleep(2)
     console_sniffer_thread.start()
 
     # ... you can add other threads here ...
