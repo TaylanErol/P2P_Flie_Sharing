@@ -132,9 +132,7 @@ def chunk_downloader(content_name):
                     chunk_data += data
 
                 if len(chunk_data) == 0:
-                    print(
-                        f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nTRYING OTHER SOURCE...')
-                    continue
+                    raise Exception(f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0, TRYING OTHER SOURCE...')
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
                 with open(chunk_name, 'wb') as chunk_file:
@@ -151,14 +149,16 @@ def chunk_downloader(content_name):
                 # Break the loop as the chunk has been successfully downloaded
                 break
             except Exception as e:
-                print(f"Failed to download {chunk_name} from {ip}: {e}, ABORTING...")
-                return
+                print(f"Failed to download {chunk_name} from {ip}: {e}, REMOVING IP FROM CHUNK LIST...")
+                # Remove the IP from the list associated with the chunk
+                content_dict[chunk_name].remove(ip)
 
     with open(content_name + '.png', 'wb') as outfile:
         for chunk in chunk_names:
             with open(chunk, 'rb') as infile:
                 outfile.write(infile.read())
             infile.close()
+
 
 
 def chunk_uploader():
