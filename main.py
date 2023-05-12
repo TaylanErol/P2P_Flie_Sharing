@@ -52,7 +52,10 @@ def chunk_announcer():
     while True:
 
         # Read the names of the chunk files
-        chunk_files = [f for f in os.listdir() if f.startswith(content_name + "_")]
+        chunk_files = []
+        for f in os.listdir():
+            if f.startswith(content_name + "_"):
+                chunk_files.append(f)
 
         # Create the announcement message
         message = json.dumps({"chunks": chunk_files}).encode('utf-8')
