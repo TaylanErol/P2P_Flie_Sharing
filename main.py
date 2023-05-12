@@ -10,21 +10,22 @@ MAX_CHUNK_SIZE = 5242880
 CHUNK_NUM = 5  # Number of chunks per file
 ANNOUNCE_PERIOD = 60  # Time between announcements in seconds
 broadcast_address = '192.168.0.255'
+content_dict = {}
 
 
 def file_splitter(content_name):
     filename = content_name + '.png'
     c = os.path.getsize(filename)
-    print('file size in bytes is: ', c, '\n')
+    print('file size ', c, ' bytes\n')
     chunk_size = math.ceil(math.ceil(c) / CHUNK_NUM)
-    print('chunk count is 5 and chunk size in bytes is: ', chunk_size, '\n')
+    print('chunk size ', chunk_size, ' bytes\n')
 
     index = 1
     with open(filename, 'rb') as infile:
         chunk = infile.read(int(chunk_size))
         while chunk:
             chunkname = content_name + '_' + str(index)
-            print("chunk name is: " + chunkname + "\n")
+            print("chunk name is: " + chunkname)
             with open(chunkname, 'wb+') as chunk_file:
                 chunk_file.write(chunk)
             index += 1
@@ -63,13 +64,29 @@ def content_discovery():
     # Bind the socket to the port
     sock.bind(('0.0.0.0', 5001))
     # Initialize the content dictionary
-    content_dict = {}
 
     while True:
         # Receive a message
         data, addr = sock.recvfrom(1024)
         # Parse the message
         message = json.loads(data.decode('utf-8'))
+
+        # Explanation is provided with ChatGpt incredible work!!!!!!!!!!!!!!!!
+        # The 'for' loop iterates over every key-value pair in the 'content_dict' dictionary.
+        # 'chunk' is the key and represents the name of the chunk.
+        # 'ips' is the value and represents a list of IP addresses associated with that chunk.
+        for chunk, ips in content_dict.items():
+
+            # 'addr' is a tuple containing the IP address and port number of the sender of the current message.
+            # 'addr[0]' is the IP address of the sender.
+            # Here, we check if the sender's IP address is in the list of IPs for the current chunk.
+            if addr[0] in ips:
+                # If the sender's IP address is in the list, we remove it.
+                # This is because the sender has just sent us a new list of chunks that they have,
+                # and we are updating our 'content_dict' to match that new list.
+                # If a chunk is not in the new list but the sender's IP is associated with it in our 'content_dict',
+                # we remove that association as the sender no longer has that chunk.
+                ips.remove(addr[0])
 
         # Update the content dictionary
         for chunk in message['chunks']:
@@ -83,17 +100,8 @@ def content_discovery():
         # Print the detected user and their hosted content
         print(f'{addr[0]} : {", ".join(message["chunks"])}')
 
-        # Store the content dictionary to a file
-        with open('content_dict.txt', 'w') as file:
-            file.write(json.dumps(content_dict))
-
 
 def chunk_downloader(content_name):
-    # content_name = input('Enter the file that you want to download: \n')
-
-    with open('content_dict.txt') as file:
-        content_dict = json.loads(file.read())
-
     chunk_names = []
     # Go through each chunk
     for i in range(1, 6):
@@ -101,7 +109,7 @@ def chunk_downloader(content_name):
         chunk_names.append(chunk_name)
 
         # If the chunk is not in the content dictionary, print a warning and continue to the next chunk
-        if chunk_name not in content_dict:
+        if chunk_name not in content_dict or not content_dict[chunk_name]:
             print(f"NO KNOWN ONLINE PEER THAT ANNOUNCED {chunk_name}, CANNOT MERGE {content_name} ABORTING...")
             return
 
@@ -117,7 +125,8 @@ def chunk_downloader(content_name):
                 # Receive the chunk
                 chunk_data = sock.recv(MAX_CHUNK_SIZE)
                 if len(chunk_data) == 0:
-                    print(f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nRETRYING FROM OTHER SOURCE...')
+                    print(
+                        f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nRETRYING FROM OTHER SOURCE...')
                     continue
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
@@ -178,15 +187,22 @@ def chunk_uploader():
 
 
 def console_sniffer():
-    print("Usable commands: \n d=<requested_file_name> / downloads requested file.")
+    print("\nUsable commands (While entering omit the ' char):\n"
+          "Download requested file: 'd/<requested_file_name>'\n"
+          "Print the current content dictionary: 'pd/'\n")
     while True:
         command = input()
 
-        if command.startswith("d="):
-            file_name = command.split('=')[1]
+        if command.startswith("d/"):
+            file_name = command.split('/')[1]
             # Start a new thread to download the file
             download_thread = threading.Thread(target=chunk_downloader, args=(file_name,))
             download_thread.start()
+        elif command.startswith("pd/"):
+            print(content_dict)
+        elif command.startswith("s/"):
+            file_name = command.split('/')[1]
+            file_splitter(file_name)
         else:
             print('Unknown command')
 
