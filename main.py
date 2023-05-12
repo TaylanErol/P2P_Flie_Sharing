@@ -121,12 +121,13 @@ def chunk_downloader(content_name):
                 sock.connect((ip, 5000))  # Connect to the peer
                 request = json.dumps({"requested_content": chunk_name}).encode('utf-8')
                 sock.send(request)  # Send the request
+                sock.settimeout(5)  # Set timeout to 5 seconds
 
                 # Receive the chunk
                 chunk_data = sock.recv(MAX_CHUNK_SIZE)
                 if len(chunk_data) == 0:
                     print(
-                        f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nRETRYING FROM OTHER SOURCE...')
+                        f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nTRYING OTHER SOURCE...')
                     continue
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
@@ -139,6 +140,7 @@ def chunk_downloader(content_name):
                 # Log the download, To remember: 'a' is for Append
                 with open('download_log.txt', 'a') as log_file:
                     log_file.write(f"{time.ctime()} - {chunk_name} downloaded from {ip}\n")
+                print(f'Successfully downloaded {chunk_name} from {ip} at {time.ctime()}')
 
                 # Break the loop as the chunk has been successfully downloaded
                 break
@@ -179,6 +181,8 @@ def chunk_uploader():
             # Log the file info after sending the chunk
             with open('upload_log.txt', 'a') as log_file:
                 log_file.write(f"{time.ctime()} - {requested_chunk_name} sent to {addr[0]}\n")
+            print(f'Successfully uploaded {requested_chunk_name} to {addr[0]} at {time.ctime()}')
+
         except Exception as e:
             print(f"Failed to send {requested_chunk_name} to {addr[0]}: {e}")
         finally:
@@ -189,7 +193,8 @@ def chunk_uploader():
 def console_sniffer():
     print("\nUsable commands (While entering omit the ' char):\n"
           "Download requested file: 'd/<requested_file_name>'\n"
-          "Print the current content dictionary: 'pd/'\n")
+          "Print the current content dictionary: 'pd/'\n"
+          "Split specified file in directory s/<file_name>")
     while True:
         command = input()
 
