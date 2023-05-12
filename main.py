@@ -116,6 +116,9 @@ def chunk_downloader(content_name):
 
                 # Receive the chunk
                 chunk_data = sock.recv(MAX_CHUNK_SIZE)
+                if len(chunk_data) == 0:
+                    print(f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nRETRYING FROM OTHER SOURCE...')
+                    continue
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
                 with open(chunk_name, 'wb') as chunk_file:
@@ -184,6 +187,8 @@ def console_sniffer():
             # Start a new thread to download the file
             download_thread = threading.Thread(target=chunk_downloader, args=(file_name,))
             download_thread.start()
+        else:
+            print('Unknown command')
 
 
 # Press the green button in the gutter to run the script.
