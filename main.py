@@ -46,7 +46,7 @@ def chunk_announcer(content_name):
         # Read the names of the chunk files
         chunk_files = []
         for f in os.listdir():
-            if f.startswith(content_name + "_"):
+            if "_" in f and "." not in f:
                 chunk_files.append(f)
 
         # Create the announcement message
