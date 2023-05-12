@@ -5,6 +5,8 @@ import time
 import json
 import socket
 
+# Max size of chunks in bytes if greater than this chunks will be capped at this and stitched image will be incomplete
+MAX_CHUNK_SIZE = 5242880
 CHUNK_NUM = 5  # Number of chunks per file
 ANNOUNCE_PERIOD = 60  # Time between announcements in seconds
 broadcast_address = '192.168.0.255'
@@ -113,7 +115,7 @@ def chunk_downloader(content_name):
                 sock.send(request)  # Send the request
 
                 # Receive the chunk
-                chunk_data = sock.recv(1024)
+                chunk_data = sock.recv(MAX_CHUNK_SIZE)
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
                 with open(chunk_name, 'wb') as chunk_file:
@@ -123,7 +125,7 @@ def chunk_downloader(content_name):
                 sock.close()
 
                 # Log the download, To remember: 'a' is for Append
-                with open('Download_log.txt', 'a') as log_file:
+                with open('download_log.txt', 'a') as log_file:
                     log_file.write(f"{time.ctime()} - {chunk_name} downloaded from {ip}\n")
 
                 # Break the loop as the chunk has been successfully downloaded
