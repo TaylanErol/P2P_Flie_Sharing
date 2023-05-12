@@ -118,13 +118,19 @@ def chunk_downloader(content_name):
             try:
                 # Establish a TCP connection and request a chunk from a peer
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                sock.settimeout(10)  # Set timeout to 10 seconds
                 sock.connect((ip, 5000))  # Connect to the peer
                 request = json.dumps({"requested_content": chunk_name}).encode('utf-8')
                 sock.send(request)  # Send the request
-                sock.settimeout(5)  # Set timeout to 5 seconds
 
-                # Receive the chunk
-                chunk_data = sock.recv(MAX_CHUNK_SIZE)
+                # Receive the chunk, While True part is a band-aid solution sent files were decreasing in size
+                chunk_data = b""
+                while True:
+                    data = sock.recv(MAX_CHUNK_SIZE)
+                    if not data:
+                        break
+                    chunk_data += data
+
                 if len(chunk_data) == 0:
                     print(
                         f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0,\nTRYING OTHER SOURCE...')
