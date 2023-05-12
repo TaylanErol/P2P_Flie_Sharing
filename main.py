@@ -174,9 +174,10 @@ def chunk_uploader():
             requested_chunk_name = request["requested_content"]
 
             # Open the requested chunk file and send it back to the client
-            with open(requested_chunk_name, 'rb') as chunk_file:
-                chunk_data = chunk_file.read()
-                conn.send(chunk_data)
+            if os.path.exists(requested_chunk_name):
+                with open(requested_chunk_name, 'rb') as chunk_file:
+                    chunk_data = chunk_file.read()
+                    conn.send(chunk_data)
 
             # Log the file info after sending the chunk
             with open('upload_log.txt', 'a') as log_file:
