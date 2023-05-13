@@ -5,8 +5,8 @@ import time
 import json
 import socket
 
-# Max size of chunks in bytes if greater than this chunks will be capped at this and stitched image will be incomplete
-MAX_CHUNK_SIZE = 5242880
+# Max size of chunks in bytes
+MAX_CHUNK_SIZE = 4096
 CHUNK_NUM = 5  # Number of chunks per file
 ANNOUNCE_PERIOD = 60  # Time between announcements in seconds
 broadcast_address = '192.168.0.255'
@@ -67,7 +67,7 @@ def content_discovery():
 
     while True:
         # Receive a message
-        data, addr = sock.recvfrom(1024)
+        data, addr = sock.recvfrom(2048)
         # Parse the message
         message = json.loads(data.decode('utf-8'))
 
@@ -118,7 +118,7 @@ def chunk_downloader(content_name):
             try:
                 # Establish a TCP connection and request a chunk from a peer
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(10)  # Set timeout to 10 seconds
+                sock.settimeout(5)  # Set timeout to 5 seconds
                 sock.connect((ip, 5000))  # Connect to the peer
                 request = json.dumps({"requested_content": chunk_name}).encode('utf-8')
                 sock.send(request)  # Send the request
@@ -175,7 +175,7 @@ def chunk_uploader():
 
         try:
             # Receive the JSON request
-            request = json.loads(conn.recv(1024).decode('utf-8'))
+            request = json.loads(conn.recv(2048).decode('utf-8'))
             # Get the chunk name from the request
             requested_chunk_name = request["requested_content"]
 
