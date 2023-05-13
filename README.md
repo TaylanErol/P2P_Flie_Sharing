@@ -23,6 +23,6 @@ Use the following commands to interact with the system:
 * d/<requested_file_name>: Download the requested file.
 * pd/: Print the current content dictionary.
 * s/<file_name>: Split the specified file into chunks.
-* g/<ip>/<chunk_name>: Download a specific chunk from a specific peer.
+* g/<_ip_>/<chunk_name>: Download a specific chunk from a specific peer.
 ## Requirements
 This script requires Python 3.7 or higher. No external libraries are needed.
