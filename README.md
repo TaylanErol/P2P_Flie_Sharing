@@ -18,8 +18,8 @@ The console_sniffer function provides a command line interface for the user to i
 Run the script: python p2p_file_sharing.py
 When prompted, enter the name of the file to host (without the extension).
 Use the following commands to interact with the system:
-*d/<requested_file_name>: Download the requested file.
-*pd/: Print the current content dictionary.
-*s/<file_name>: Split the specified file into chunks.
+* d/<requested_file_name>: Download the requested file.
+* pd/: Print the current content dictionary.
+* s/<file_name>: Split the specified file into chunks.
 ## Requirements
 This script requires Python 3.7 or higher.
