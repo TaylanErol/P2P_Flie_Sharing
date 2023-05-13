@@ -115,10 +115,12 @@ def chunk_downloader(content_name):
 
         # Try downloading the chunk from each peer until it is successfully downloaded
         for ip in content_dict[chunk_name]:
+
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(5)  # Set timeout to 5 seconds
+
             try:
                 # Establish a TCP connection and request a chunk from a peer
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                sock.settimeout(5)  # Set timeout to 5 seconds
                 sock.connect((ip, 5000))  # Connect to the peer
                 request = json.dumps({"requested_content": chunk_name}).encode('utf-8')
                 sock.send(request)  # Send the request
@@ -138,20 +140,19 @@ def chunk_downloader(content_name):
                 with open(chunk_name, 'wb') as chunk_file:
                     chunk_file.write(chunk_data)
 
-                # Close the connection
-                sock.close()
 
                 # Log the download, To remember: 'a' is for Append
                 with open('download_log.txt', 'a') as log_file:
                     log_file.write(f"{time.ctime()} - {chunk_name} downloaded from {ip}\n")
                 print(f'Successfully downloaded {chunk_name} from {ip} at {time.ctime()}')
 
-                # Break the loop as the chunk has been successfully downloaded
-                break
             except Exception as e:
                 print(f"Failed to download {chunk_name} from {ip}: {e}, REMOVING IP FROM CHUNK LIST...")
                 # Remove the IP from the list associated with the chunk
                 content_dict[chunk_name].remove(ip)
+            finally:
+                # Close the connection
+                sock.close()
 
     with open(content_name + '.png', 'wb') as outfile:
         for chunk in chunk_names:
@@ -184,6 +185,8 @@ def chunk_uploader():
                 with open(requested_chunk_name, 'rb') as chunk_file:
                     chunk_data = chunk_file.read()
                     conn.send(chunk_data)
+            else:
+                raise Exception(f' REQUESTED FILE NOT FOUND...')
 
             # Log the file info after sending the chunk
             with open('upload_log.txt', 'a') as log_file:
