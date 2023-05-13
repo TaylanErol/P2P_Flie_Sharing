@@ -134,12 +134,12 @@ def chunk_downloader(content_name):
                     chunk_data += data
 
                 if len(chunk_data) == 0:
-                    raise Exception(f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0, TRYING OTHER SOURCE...')
+                    raise Exception(
+                        f'DOWNLOAD ERROR: TRIED DOWNLOADING FROM {ip} CHUNK SIZE IS 0, TRYING OTHER SOURCE...')
 
                 # Save the chunk to a file, To remember: 'wb' is for Write Binary
                 with open(chunk_name, 'wb') as chunk_file:
                     chunk_file.write(chunk_data)
-
 
                 # Log the download, To remember: 'a' is for Append
                 with open('download_log.txt', 'a') as log_file:
@@ -159,7 +159,6 @@ def chunk_downloader(content_name):
             with open(chunk, 'rb') as infile:
                 outfile.write(infile.read())
             infile.close()
-
 
 
 def chunk_uploader():
@@ -200,11 +199,50 @@ def chunk_uploader():
             conn.close()
 
 
+def get_chunk_from_ip(ip, chunk_name):
+
+    # Establish a TCP connection and request the chunk from the IP
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(5)  # Set timeout to 5 seconds
+    try:
+        sock.connect((ip, 5000))  # Connect to the IP
+        request = json.dumps({"requested_content": chunk_name}).encode('utf-8')
+        sock.send(request)  # Send the request
+
+        # Receive the chunk, While True part is a band-aid solution since files were decreasing in size
+        chunk_data = b""
+        while True:
+            data = sock.recv(MAX_CHUNK_SIZE)
+            if not data:
+                break
+            chunk_data += data
+
+        if len(chunk_data) == 0:
+            raise Exception(f'DOWNLOAD ERROR: TRIED DOWNLOADING {chunk_name} FROM {ip} BUT CHUNK SIZE IS 0')
+
+        # Save the chunk to a file, To remember: 'wb' is for Write Binary
+        with open(chunk_name, 'wb') as chunk_file:
+            chunk_file.write(chunk_data)
+
+        # Log the download, To remember: 'a' is for Append
+        with open('download_log.txt', 'a') as log_file:
+            log_file.write(f"{time.ctime()} - {chunk_name} downloaded from {ip}\n")
+        print(f'Successfully downloaded {chunk_name} from {ip} at {time.ctime()}')
+
+    except Exception as e:
+        print(f"Failed to download {chunk_name} from {ip}: {e}")
+
+    finally:
+        # Close the connection
+        sock.close()
+
+
 def console_sniffer():
     print("\nUsable commands (While entering omit the ' char):\n"
           "Download requested file: 'd/<requested_file_name>'\n"
           "Print the current content dictionary: 'pd/'\n"
-          "Split specified file in directory s/<file_name>")
+          "Split specified file in directory s/<file_name>\n"
+          "Get specified chunk from an IP: 'g/<ip>/<chunk_name>")
     while True:
         command = input()
 
@@ -218,6 +256,16 @@ def console_sniffer():
         elif command.startswith("s/"):
             file_name = command.split('/')[1]
             file_splitter(file_name)
+        elif command.startswith("g/"):
+            parts = command.split('/')
+            if len(parts) != 3:
+                print('Invalid command for getting a chunk. Use the format g/<ip>/<chunk_name>')
+            else:
+                ip = parts[1]
+                chunk_name = parts[2]
+                # Start a new thread to get the chunk from the specified IP
+                get_thread = threading.Thread(target=get_chunk_from_ip, args=(ip, chunk_name))
+                get_thread.start()
         else:
             print('Unknown command')
 
