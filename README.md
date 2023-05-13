@@ -1,4 +1,4 @@
-# README for Peer-to-Peer File Sharing System in Python 
+# Peer-to-Peer File Sharing System in Python 
 This Python script implements a simple peer-to-peer (P2P) file sharing system. It uses TCP and UDP sockets for communication between peers, and JSON for data serialization and deserialization.
 
 ## Features
